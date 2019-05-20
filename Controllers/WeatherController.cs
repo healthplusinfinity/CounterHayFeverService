@@ -70,7 +70,7 @@ namespace HealthPlusInfinity.Controllers
                 string url = APIBaseURL + $"&lat={latitude}&lon={longitude}&units=metric";
                 Uri uri = new Uri(url);
                 var cts = new CancellationToken();
-                
+
                 Task.Run(async () => {
                     try
                     {
@@ -91,10 +91,10 @@ namespace HealthPlusInfinity.Controllers
             JObject jsonObject = JObject.Parse(result);
             var weatherData = new WeatherModel
             {
-                Temperature = (double) jsonObject.SelectToken("main.temp"),
-                Pressure = (double) jsonObject.SelectToken("main.pressure"),
-                Humidity = (double) jsonObject.SelectToken("main.humidity"),
-                WindSpeed = 3.6 * (double) jsonObject.SelectToken("wind.speed")
+                Temperature = (double)jsonObject.SelectToken("main.temp"),
+                Pressure = (double)jsonObject.SelectToken("main.pressure"),
+                Humidity = (double)jsonObject.SelectToken("main.humidity"),
+                WindSpeed = 3.6 * (double)jsonObject.SelectToken("wind.speed")
             };
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -134,8 +134,7 @@ namespace HealthPlusInfinity.Controllers
             }
 
             weatherData.Score = GetScore(weatherData.Temperature, weatherData.Humidity
-                , weatherData.Pressure, weatherData.WindSpeed
-                , weatherData.TreeCount, weatherData.ConstructionCount);
+                , weatherData.Pressure, weatherData.WindSpeed);
 
             return new JsonResult(weatherData);
         }
@@ -148,20 +147,15 @@ namespace HealthPlusInfinity.Controllers
         /// <param name="humidity">Humidity in percentage.</param>
         /// <param name="pressure">Pressure in hPa.</param>
         /// <param name="windspeed">Windspeed in kmph.</param>
-        /// <param name="trees">Tree population in the location.</param>
-        private double GetScore(double temperature, double humidity, double pressure, 
-            double windspeed, double trees, double construction)
+        private double GetScore(double temperature, double humidity, double pressure, double windspeed)
         {
             IConfigurationSection coefficientSection = Configuration.GetSection("Coefficients");
             double t = Convert.ToDouble(coefficientSection["Temperature"]);
             double h = Convert.ToDouble(coefficientSection["Humidity"]);
             double p = Convert.ToDouble(coefficientSection["Pressure"]);
             double w = Convert.ToDouble(coefficientSection["Windspeed"]);
-            double tr = Convert.ToDouble(coefficientSection["Trees"]);
-            double cn = Convert.ToDouble(coefficientSection["Construction"]);
 
-            return t * temperature + h * humidity + p * pressure + w * windspeed 
-                + tr * trees + cn * construction;
+            return t * temperature + h * humidity + p * pressure + w * windspeed;
         }
     }
 }
